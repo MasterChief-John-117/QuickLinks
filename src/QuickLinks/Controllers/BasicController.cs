@@ -39,5 +39,16 @@ namespace QuickLinks.Controllers
             Program.database.GetCollection<Entities.Link>("links").Insert(link);
             Console.WriteLine($"New Link:\nOriginal URL: {link.OriginalUrl}\nShortened URL: {link.ShortUrl}\nAnalytics Tag: {link.AnalyticsTag}");
         }
+
+        [HttpGet("analytics/{key}")]
+        public IActionResult Analytics(string key)
+        {
+            var link = Program.database.GetCollection<Entities.Link>("links").FindOne(l => l.AnalyticsTag == key);
+            if (link != null)
+            {
+                return new JsonResult(link.GetAnalytics());
+            }
+            else return new JsonResult("Not Found");
+        }
     }
 }

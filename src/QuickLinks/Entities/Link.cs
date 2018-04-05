@@ -14,12 +14,22 @@ namespace QuickLinks.Entities
             public string UserAgent;
             public string Ip;
         }
+        public class Analytics
+        {
+            public int AllVisitorCount { get; private set; }
+            public int UniqueVisitorCount { get; private set; }
+            public Analytics(IEnumerable<Visitor> AllVisitors, IEnumerable<Visitor> UniqueVisitors)
+            {
+                this.AllVisitorCount = AllVisitors == null ? 0 : AllVisitors.Count();
+                this.UniqueVisitorCount = UniqueVisitors == null ? 0 : UniqueVisitors.Count();
+            }
+        }
         public string OriginalUrl { get; private set; }
         [BsonId]
         public string ShortUrl { get; private set; }
         public string AnalyticsTag { get; private set; }
-        public List<Visitor> AllVisitors { get; private set; }
-        public HashSet<Visitor> UniqueVisitors { get; private set; }
+        private List<Visitor> AllVisitors { get; set; }
+        private HashSet<Visitor> UniqueVisitors { get; set; }
 
         public Link()
         {
@@ -35,6 +45,11 @@ namespace QuickLinks.Entities
             );
             AllVisitors = new List<Visitor>();
             UniqueVisitors = new HashSet<Visitor>();
+        }
+
+        public Analytics GetAnalytics()
+        {
+            return new Analytics(this.AllVisitors, this.UniqueVisitors);
         }
 
         private string GetNewShortLink()
