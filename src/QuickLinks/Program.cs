@@ -4,7 +4,6 @@ using LiteDB;
 using System.IO;
 using System;
 using System.Diagnostics;
-using System.Collections.Generic;
 
 namespace QuickLinks
 {
@@ -48,6 +47,7 @@ namespace QuickLinks
                 file.Close();
                 stopwatch.Stop();
                 Console.WriteLine($"Created word list in {stopwatch.ElapsedMilliseconds} ms");
+                database.GetCollection<Entities.Link>("links").EnsureIndex(l => l.AnalyticsTag);
             }
         }
         public class Word
