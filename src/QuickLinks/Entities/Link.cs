@@ -22,12 +22,12 @@ namespace QuickLinks.Entities
         {
             OriginalUrl = url;
             AnalyticsTag = GetNewAnalyticsTag();
-            ShortUrl = GetShortLink();
+            ShortUrl = GetNewShortLink();
             AllVisitors = new List<Visitor>();
             UniqueVisitors = new HashSet<Visitor>();
         }
 
-        private string GetShortLink()
+        private string GetNewShortLink()
         {
             var words = Program.database.GetCollection<Program.Word>("words").FindAll().Select(w => w.Value);
             string val = "";
