@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Threading.Tasks;
 
 namespace QuickLinks.Entities
 {
@@ -27,8 +28,11 @@ namespace QuickLinks.Entities
         public Link(string url)
         {
             OriginalUrl = url;
-            ShortUrl = GetNewShortLink();
-            AnalyticsTag = GetNewAnalyticsTag();
+            Parallel.Invoke
+            (
+                () => ShortUrl = GetNewShortLink(),
+                () => AnalyticsTag = GetNewAnalyticsTag()
+            );
             AllVisitors = new List<Visitor>();
             UniqueVisitors = new HashSet<Visitor>();
         }
@@ -38,7 +42,6 @@ namespace QuickLinks.Entities
             var linkDb = Program.database.GetCollection<Link>("links");
             while (true)
             {
-                Console.WriteLine("Generating new Shortlink");
                 var words = Program.database.GetCollection<Program.Word>("words").FindAll().Select(w => w.Value);
                 string val = "";
                 val += words.ElementAt((new Random()).Next(0, words.Count()));
@@ -48,6 +51,7 @@ namespace QuickLinks.Entities
                 {
                     return val;
                 }
+                Console.WriteLine($"{DateTime.Now}: Generating new shortlink.... Collision found, trying again");
             }
         }
 
@@ -56,7 +60,6 @@ namespace QuickLinks.Entities
             var linkdb = Program.database.GetCollection<Link>("links");
             while (true)
             {
-                Console.WriteLine("Generating new Analytics tag");
                 char[] chars = "abcdefghijklmnopqrstuvwxyz".ToCharArray();
                 string tag = "";
                 for (int i = 0; i < 16; i++)
@@ -67,6 +70,7 @@ namespace QuickLinks.Entities
                 {
                     return tag;
                 }
+                Console.WriteLine($"{DateTime.Now}: Generating new Analytics tag.... Collision found, trying again");
             }
         }
 

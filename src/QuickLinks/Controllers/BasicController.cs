@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System;
+using System.Threading;
 
 namespace QuickLinks.Controllers
 {
@@ -13,7 +14,10 @@ namespace QuickLinks.Controllers
             if (Uri.IsWellFormedUriString(url, UriKind.Absolute))
             {
                 var link = new Entities.Link(url);
-                Program.database.GetCollection<Entities.Link>("links").Insert(link);
+                new Thread(() => {
+                    Thread.CurrentThread.IsBackground = true;
+                    SaveLink(link);
+                }).Start();
                 return new JsonResult(link);
             }
             else
@@ -25,9 +29,15 @@ namespace QuickLinks.Controllers
                 }
                 else
                 {
-                    return new JsonResult("NOT FOUND");
+                    HttpContext.Response.StatusCode = 404;
+                    return new JsonResult("Not Found");
                 }
             }
+        }
+        private void SaveLink(Entities.Link link)
+        {
+            Program.database.GetCollection<Entities.Link>("links").Insert(link);
+            Console.WriteLine($"New Link:\nOriginal URL: {link.OriginalUrl}\nShortened URL: {link.ShortUrl}\nAnalytics Tag: {link.AnalyticsTag}");
         }
     }
 }
