@@ -11,6 +11,10 @@ namespace QuickLinks.Controllers
         [HttpGet("{*url}")]
         public IActionResult Get(string url)
         {
+            if(url == null || url.ToLower() == "help")
+            {
+                return RedirectPermanent("https://mastrchef.rocks/quicklinks");
+            }
             if (Uri.IsWellFormedUriString(url, UriKind.Absolute))
             {
                 var link = new Entities.Link(url);
@@ -22,7 +26,7 @@ namespace QuickLinks.Controllers
             }
             else
             {
-                var link = Program.database.GetCollection<Entities.Link>("links").FindById(url);
+                var link = Program.database.GetCollection<Entities.Link>("links").FindOne(l => l.ShortUrl.ToLower() == url.ToLower());
                 if (link != null)
                 {
                     return RedirectPermanent(link.OriginalUrl);
@@ -37,7 +41,7 @@ namespace QuickLinks.Controllers
         private void SaveLink(Entities.Link link)
         {
             Program.database.GetCollection<Entities.Link>("links").Insert(link);
-            Console.WriteLine($"New Link:\nOriginal URL: {link.OriginalUrl}\nShortened URL: {link.ShortUrl}\nAnalytics Tag: {link.AnalyticsTag}");
+            Console.WriteLine($"New Link:\n  Original URL: {link.OriginalUrl}\n  Shortened URL: {link.ShortUrl}\n  Analytics Tag: {link.AnalyticsTag}");
         }
 
         [HttpGet("analytics/{key}")]
