@@ -24,6 +24,35 @@ namespace QuickLinks.Controllers
                 }).Start();
                 return new JsonResult(link);
             }
+            else if (url.ToLower().StartsWith("custom/"))
+            {
+                url = url.Substring("custom/".Length);
+                string sLink = url.Split("/")[0];
+                url = url.Substring($"{sLink}/".Length);
+                var testLink = Program.database.GetCollection<Entities.Link>("links").FindOne(l => l.ShortUrl.ToLower() == sLink.ToLower());
+                if (testLink == null)
+                {
+                    if (Uri.IsWellFormedUriString(url, UriKind.Absolute))
+                    {
+                        var link = new Entities.Link(url, sLink);
+                        new Thread(() => {
+                            Thread.CurrentThread.IsBackground = true;
+                            SaveLink(link);
+                        }).Start();
+                        return new JsonResult(link);
+                    }
+                    else
+                    {
+                        HttpContext.Response.StatusCode = 400;
+                        return new JsonResult("Invalid URL");
+                    }
+                }
+                else
+                {
+                    HttpContext.Response.StatusCode = 400;
+                    return new JsonResult("ShortLink Already in Use");
+                }
+            }
             else
             {
                 var link = Program.database.GetCollection<Entities.Link>("links").FindOne(l => l.ShortUrl.ToLower() == url.ToLower());

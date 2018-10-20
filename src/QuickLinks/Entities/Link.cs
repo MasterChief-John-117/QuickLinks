@@ -46,6 +46,17 @@ namespace QuickLinks.Entities
             AllVisitors = new List<Visitor>();
             UniqueVisitors = new HashSet<Visitor>();
         }
+        public Link(string url, string sLink)
+        {
+            OriginalUrl = url;
+            Parallel.Invoke
+            (
+                () => ShortUrl = sLink,
+                () => AnalyticsTag = GetNewAnalyticsTag()
+            );
+            AllVisitors = new List<Visitor>();
+            UniqueVisitors = new HashSet<Visitor>();
+        }
 
         public Analytics GetAnalytics()
         {
