@@ -17,16 +17,32 @@ namespace QuickLinks.Controllers
             }
             if (Uri.IsWellFormedUriString(url, UriKind.Absolute))
             {
-                var link = new Entities.Link(url);
-                new Thread(() => {
+                var link = new Entities.Link($"{Request.Path}{Request.QueryString}".TrimStart('/'));
+                new Thread(() =>
+                {
                     Thread.CurrentThread.IsBackground = true;
                     SaveLink(link);
                 }).Start();
                 return new JsonResult(link);
             }
+            else if (url.ToLower().StartsWith("delete/"))
+            {
+                url = url.Substring("delete/".Length);
+                var link = Program.database.GetCollection<Entities.Link>("links").FindOne(l => l.AnalyticsTag.ToLower() == url.ToLower());
+                if (link != null)
+                {
+                    Program.database.GetCollection<Entities.Link>("links").Delete(l => l.AnalyticsTag.ToLower() == url.ToLower());
+                    return new JsonResult("Sucessfully Deleted Link");
+                }
+                else
+                {
+                    HttpContext.Response.StatusCode = 404;
+                    return new JsonResult("Not Found");
+                }
+            }
             else if (url.ToLower().StartsWith("custom/"))
             {
-                url = url.Substring("custom/".Length);
+                url = $"{Request.Path}{Request.QueryString}".TrimStart('/').Substring("custom/".Length);
                 string sLink = url.Split("/")[0];
                 url = url.Substring($"{sLink}/".Length);
                 var testLink = Program.database.GetCollection<Entities.Link>("links").FindOne(l => l.ShortUrl.ToLower() == sLink.ToLower());
@@ -35,7 +51,8 @@ namespace QuickLinks.Controllers
                     if (Uri.IsWellFormedUriString(url, UriKind.Absolute))
                     {
                         var link = new Entities.Link(url, sLink);
-                        new Thread(() => {
+                        new Thread(() =>
+                        {
                             Thread.CurrentThread.IsBackground = true;
                             SaveLink(link);
                         }).Start();
@@ -58,7 +75,8 @@ namespace QuickLinks.Controllers
                 var link = Program.database.GetCollection<Entities.Link>("links").FindOne(l => l.ShortUrl.ToLower() == url.ToLower());
                 if (link != null)
                 {
-                    return RedirectPermanent(link.OriginalUrl);
+                    HttpContext.Response.StatusCode = 302;
+                    return Redirect(link.OriginalUrl);
                 }
                 else
                 {
